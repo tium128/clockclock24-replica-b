@@ -1,3 +1,9 @@
+Fork from # ClockClock 24 Replica by Vallasc :
+Adaptation :
+    - For master, use ESP32-S3 instead of ESP32 D1-mini-lite
+    - For slave, use STM32 Blue Pill instead of Arduino Pico
+    - Using TMC2209 driver instead of VID6606
+
 # ClockClock 24 Replica
 This is my personal implementation of the "ClockClock 24" by [Humans Since 1982](https://www.humanssince1982.com/).
 
