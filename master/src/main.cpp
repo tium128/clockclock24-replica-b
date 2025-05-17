@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <TimeLib.h>
+#include <Adafruit_NeoPixel.h>
+#define PIN_RGB     48      // GPIO38 comme indiqué
+#define NUMPIXELS   1       // 1 LED
 
 #include "i2c.h"
 #include "clock_state.h"
@@ -10,6 +13,7 @@
 #include "web_server.h"
 #include "clock_config.h"
 #include "ntp.h"
+
 
 int last_hour = -1;
 int last_minute = -1;
@@ -54,7 +58,10 @@ void setup() {
   begin_config();
 
   Wire.begin(8, 9);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pixels.begin();            // Initialise la LED
+  pixels.setBrightness(10);  // Réduit l’intensité globale (0–255)
+  pixels.setPixelColor(0, pixels.Color(255, 0, 0)); // Rouge
+  pixels.show();
 
   if(get_connection_mode() == HOTSPOT)
     wifi_create_AP("ClockClock 24", "clockclock24");
@@ -72,7 +79,7 @@ void setup() {
     // Sync every 30 minutes
     setSyncInterval(60 * 30);
   }
-
+  set_wifi_status_led(get_connection_mode());
   // Starts web server
   server_start();
 }

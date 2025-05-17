@@ -5,6 +5,7 @@
 #include <WiFi.h> 
 #include <ESPmDNS.h>
 
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN_RGB, NEO_GRB + NEO_KHZ800);
 const int max_wifi_retries = 50;
 
 /**
@@ -26,14 +27,11 @@ bool wifi_connect(const char *ssid, const char *password, const char *mdns)
   {
     delay(200);
     Serial.print(".");
-    digitalWrite(LED_BUILTIN, LOW);
     delay(200);
-    digitalWrite(LED_BUILTIN, HIGH);
   }
   if (WiFi.status() != WL_CONNECTED)
   {
     Serial.printf("\nWiFi not connected: max wifi retries reached\n");
-    digitalWrite(LED_BUILTIN, LOW);
     return false;
   }
   if (!MDNS.begin(mdns)) 
@@ -66,10 +64,8 @@ bool wifi_create_AP(const char *ssid, const char *mdns)
   if (!WiFi.softAPConfig(AP_LOCAL_IP, AP_GATEWAY_IP, AP_NETWORK_MASK))
   {
     Serial.println("AP Config Failed");
-    digitalWrite(LED_BUILTIN, LOW);
     return false;
   }
-  digitalWrite(LED_BUILTIN, HIGH);
   WiFi.softAP(ssid, NULL);
   IPAddress IP = WiFi.softAPIP();
   if (!MDNS.begin(mdns)) 
@@ -103,4 +99,17 @@ bool is_connected()
   return WiFi.status() == WL_CONNECTED;
 }
 
+/**
+ * Set statut LED color to indicate wifi status
+*/
+void set_wifi_status_led(int mode) {
+  if (mode == EXT_CONN) {
+    pixels.setPixelColor(0, pixels.Color(255, 255, 255)); // Blanc
+  } else if (mode == HOTSPOT) {
+    pixels.setPixelColor(0, pixels.Color(0, 0, 255));     // Bleu
+  } else {
+    pixels.setPixelColor(0, pixels.Color(10, 0, 0));      // Faible rouge = erreur ?
+  }
+  pixels.show();
+}
 #endif
