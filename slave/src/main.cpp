@@ -7,8 +7,6 @@
 
 const t_clock default_clock = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-// int spin_num; //The spin lock number
-spin_lock_t *spin_lock[3]; //The spinlock object that will be associated with spin_num
 
 t_half_digit target_clocks_state;
 t_half_digit current_clocks_state;
@@ -24,10 +22,8 @@ void receiveEvent(int how_many)
 
     for (uint8_t i = 0; i < 3; i++)
     {
-      spin_lock_unsafe_blocking(spin_lock[i]); //Acquire the spin lock without disabling interrupts
       target_clocks_state.clocks[i] = tmp_state.clocks[i];
       target_clocks_state.change_counter[i] = tmp_state.change_counter[i];
-      spin_unlock_unsafe(spin_lock[i]); //Release the spin lock without re-enabling interrupts
     }
   }
 }
@@ -39,12 +35,6 @@ void setup()
 
   board_begin();
   target_clocks_state = {{default_clock, default_clock, default_clock}, {0, 0, 0}};
-
-  for (uint8_t i = 0; i < 3; i++)
-  {
-    int spin_num = spin_lock_claim_unused(true); //Claim a free spin lock. If true the function will panic if none are available
-    spin_lock[i] = spin_lock_init(spin_num); //Initialise a spin lock
-  }
 
   Wire.begin(get_i2c_address());
   Wire.onReceive(receiveEvent);
@@ -69,10 +59,8 @@ void loop1()
     if(!clock_is_running(i) && current_clocks_state.change_counter[i] != target_clocks_state.change_counter[i])
     {
       //Serial.printf("Inside clock %d\n", i);
-      spin_lock_unsafe_blocking(spin_lock[i]);
       current_clocks_state.clocks[i] = target_clocks_state.clocks[i];
       current_clocks_state.change_counter[i] = target_clocks_state.change_counter[i];
-      spin_unlock_unsafe(spin_lock[i]);
 
       if(current_clocks_state.clocks[i].mode_h == ADJUST_HAND)
         adjust_h_hand(i, current_clocks_state.clocks[i].adjust_h);
